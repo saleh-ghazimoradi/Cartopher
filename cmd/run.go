@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
+	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
+	"github.com/saleh-ghazimoradi/Cartopher/internal/service"
 	"log"
 	"log/slog"
 	"os"
@@ -60,8 +62,18 @@ var runCmd = &cobra.Command{
 
 		healthHandler := handlers.NewHealthHandler()
 		healthRoutes := routes.NewHealthRoutes(healthHandler)
+
+		userRepository := repository.NewUserRepository(gormDB, gormDB)
+		cartRepository := repository.NewCartRepository(gormDB, gormDB)
+
+		authService := service.NewAuthService(cfg, userRepository, cartRepository)
+
+		authHandler := handlers.NewAuthHandler(authService)
+		authRoutes := routes.NewAuthRoutes(authHandler)
+		
 		registerRoutes := routes.NewRegister(
 			routes.WithHealthRoute(healthRoutes),
+			routes.WithAuthRoute(authRoutes),
 			routes.WithMiddlewares(middleware),
 		)
 
