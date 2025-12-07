@@ -20,8 +20,12 @@ type Config struct {
 }
 
 type Server struct {
-	Port    string `env:"SERVER_PORT"`
-	GinMode string `env:"SERVER_GIN_MODE"`
+	Host         string        `env:"SERVER_HOST"`
+	Port         string        `env:"SERVER_PORT"`
+	IdleTimeout  time.Duration `env:"SERVER_IDLE_TIMEOUT"`
+	ReadTimeout  time.Duration `env:"SERVER_READ_TIMEOUT"`
+	WriteTimeout time.Duration `env:"SERVER_WRITE_TIMEOUT"`
+	GinMode      string        `env:"SERVER_GIN_MODE"`
 }
 
 type Postgresql struct {
