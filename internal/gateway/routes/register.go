@@ -8,6 +8,7 @@ import (
 type Register struct {
 	middlewares *middlewares.Middlewares
 	healthRoute *HealthRoutes
+	authRoute   *AuthRoutes
 }
 
 type Options func(*Register)
@@ -15,6 +16,12 @@ type Options func(*Register)
 func WithHealthRoute(healthRoute *HealthRoutes) Options {
 	return func(r *Register) {
 		r.healthRoute = healthRoute
+	}
+}
+
+func WithAuthRoute(authRoute *AuthRoutes) Options {
+	return func(r *Register) {
+		r.authRoute = authRoute
 	}
 }
 
@@ -32,7 +39,7 @@ func (r *Register) RegisterRoutes() *gin.Engine {
 	router.Use(r.middlewares.CorsMiddleware())
 
 	r.healthRoute.HealthRoute(router)
-
+	r.authRoute.AuthRoute(router)
 	return router
 }
 
