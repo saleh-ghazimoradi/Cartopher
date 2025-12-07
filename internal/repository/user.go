@@ -98,7 +98,7 @@ func (u *userRepository) DeleteRefreshTokenById(ctx context.Context, id uint) er
 	return u.dbWrite.WithContext(ctx).Delete(&domain.RefreshToken{}, id).Error
 }
 
-func NewAuthRepository(dbWrite, dbRead *gorm.DB) UserRepository {
+func NewUserRepository(dbWrite, dbRead *gorm.DB) UserRepository {
 	return &userRepository{
 		dbWrite: dbWrite,
 		dbRead:  dbRead,
