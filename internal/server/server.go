@@ -22,7 +22,7 @@ type Server struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	ErrorLog     *log.Logger
-	logger       zerolog.Logger
+	logger       *zerolog.Logger
 	WG           *sync.WaitGroup
 }
 
@@ -76,7 +76,7 @@ func WithWG(wg *sync.WaitGroup) Options {
 	}
 }
 
-func WithLogger(logger zerolog.Logger) Options {
+func WithLogger(logger *zerolog.Logger) Options {
 	return func(s *Server) {
 		s.logger = logger
 	}

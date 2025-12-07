@@ -69,7 +69,7 @@ var runCmd = &cobra.Command{
 			server.WithIdleTimeout(cfg.Server.IdleTimeout),
 			server.WithReadTimeout(cfg.Server.ReadTimeout),
 			server.WithWriteTimeout(cfg.Server.WriteTimeout),
-			server.WithLogger(logger.NewLogger(cfg)),
+			server.WithLogger(&log),
 			server.WithWG(wg),
 			server.WithErrorLog(slog.NewLogLogger(errorLog.Handler(), slog.LevelError)),
 		)
