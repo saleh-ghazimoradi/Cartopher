@@ -25,7 +25,7 @@ type authService struct {
 }
 
 func (a *authService) Register(ctx context.Context, req *dto.RegisterRequest) (*dto.AuthResponse, error) {
-	if _, err := a.userRepository.GetUserByEmail(ctx, req.Email); err != nil {
+	if _, err := a.userRepository.GetUserByEmail(ctx, req.Email); err == nil {
 		return nil, errors.New("you cannot register with this user")
 	}
 
@@ -132,10 +132,10 @@ func (a *authService) generateAuthResponse(ctx context.Context, user *domain.Use
 	}, nil
 }
 
-func NewAuthService(cfg *config.Config, authRepository repository.UserRepository, cartRepository repository.CartRepository) AuthService {
+func NewAuthService(cfg *config.Config, userRepository repository.UserRepository, cartRepository repository.CartRepository) AuthService {
 	return &authService{
 		cfg:            cfg,
-		userRepository: authRepository,
+		userRepository: userRepository,
 		cartRepository: cartRepository,
 	}
 }
