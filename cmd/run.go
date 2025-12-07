@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
 	"log"
 	"log/slog"
 	"os"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/saleh-ghazimoradi/Cartopher/config"
-	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/gateway/handlers"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/gateway/middlewares"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/gateway/routes"
@@ -35,21 +35,26 @@ var runCmd = &cobra.Command{
 
 		log := logger.NewLogger(cfg)
 
-		db, err := postgresql.NewPostgresql(cfg)
+		postDB := postgresql.NewPostgresql(
+			postgresql.WithHost(cfg.Postgresql.Host),
+			postgresql.WithPort(cfg.Postgresql.Port),
+			postgresql.WithUser(cfg.Postgresql.User),
+			postgresql.WithPassword(cfg.Postgresql.Password),
+			postgresql.WithName(cfg.Postgresql.Name),
+			postgresql.WithMaxOpenConn(cfg.Postgresql.MaxOpenConn),
+			postgresql.WithMaxIdleConn(cfg.Postgresql.MaxIdleConn),
+			postgresql.WithMaxIdleTime(cfg.Postgresql.MaxIdleTime),
+			postgresql.WithSSLMode(cfg.Postgresql.SSLMode),
+			postgresql.WithTimeout(cfg.Postgresql.Timeout),
+			postgresql.WithLogger(&log),
+		)
+
+		gormDB, _, err := postDB.Connect()
 		if err != nil {
-			log.Fatal().Err(err).Msg("failed to connect to database")
+			log.Fatal().Err(err).Msg("Error connecting to database")
 		}
 
-		mainDB, err := db.DB()
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to get database connection")
-		}
-
-		defer func() {
-			if err := mainDB.Close(); err != nil {
-				log.Fatal().Err(err).Msg("failed to close database connection")
-			}
-		}()
+		_ = gormDB
 
 		middleware := middlewares.NewMiddlewares()
 
