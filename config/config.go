@@ -1,9 +1,10 @@
 package config
 
 import (
-	"github.com/caarlos0/env/v11"
 	"sync"
 	"time"
+
+	"github.com/caarlos0/env/v11"
 )
 
 var (

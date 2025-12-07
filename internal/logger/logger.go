@@ -1,11 +1,12 @@
 package logger
 
 import (
+	"os"
+	"time"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/saleh-ghazimoradi/Cartopher/config"
-	"os"
-	"time"
 )
 
 func NewLogger(cfg *config.Config) zerolog.Logger {

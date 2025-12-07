@@ -2,6 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"log/slog"
+	"os"
+	"sync"
+
 	"github.com/gin-gonic/gin"
 	"github.com/saleh-ghazimoradi/Cartopher/config"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
@@ -10,10 +15,6 @@ import (
 	"github.com/saleh-ghazimoradi/Cartopher/internal/gateway/routes"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/logger"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/server"
-	"log"
-	"log/slog"
-	"os"
-	"sync"
 
 	"github.com/spf13/cobra"
 )
