@@ -20,6 +20,9 @@ run:
 dev:
 	go run . run
 
+fmt:
+	go fmt ./...
+
 lint:
 	golangci-lint run ./...
 
