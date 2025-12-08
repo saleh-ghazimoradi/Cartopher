@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/domain"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/dto"
+	"github.com/saleh-ghazimoradi/Cartopher/internal/helper"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
 )
 
@@ -12,6 +13,10 @@ type ProductService interface {
 	GetCategories(ctx context.Context) ([]*dto.CategoryResponse, error)
 	UpdateCategory(ctx context.Context, id uint, req *dto.UpdateCategoryRequest) (*dto.CategoryResponse, error)
 	DeleteCategory(ctx context.Context, id uint) error
+
+	CreateProduct(ctx context.Context, req *dto.CreateProductRequest) (*dto.ProductResponse, error)
+	GetProductById(ctx context.Context, id uint) (*dto.ProductResponse, error)
+	UpdateProduct(ctx context.Context, id uint, req *dto.UpdateProductRequest) (*dto.ProductResponse, error)
 }
 
 type productService struct {
@@ -81,6 +86,119 @@ func (p *productService) UpdateCategory(ctx context.Context, id uint, req *dto.U
 
 func (p *productService) DeleteCategory(ctx context.Context, id uint) error {
 	return p.productRepository.DeleteCategory(ctx, id)
+}
+
+func (p *productService) CreateProduct(ctx context.Context, req *dto.CreateProductRequest) (*dto.ProductResponse, error) {
+	product := &domain.Product{
+		CategoryId:  req.CategoryId,
+		Name:        req.Name,
+		Description: req.Description,
+		Price:       req.Price,
+		Stock:       req.Stock,
+		SKU:         req.SKU,
+	}
+	if err := p.productRepository.CreateProduct(ctx, product); err != nil {
+		return nil, err
+	}
+
+	return p.GetProductById(ctx, product.Id)
+
+}
+
+func (p *productService) GetProductById(ctx context.Context, id uint) (*dto.ProductResponse, error) {
+	product, err := p.productRepository.GetProductById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	response := p.convertToProductResponse(product)
+	return response, nil
+}
+
+func (p *productService) GetProducts(ctx context.Context, page, limit int) ([]*dto.ProductResponse, *helper.PaginatedMeta, error) {
+	if page < 1 {
+		page = 1
+	}
+
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	total, err := p.productRepository.CountActiveProducts(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	products, err := p.productRepository.GetProducts(ctx, offset, limit)
+
+	response := make([]*dto.ProductResponse, len(products))
+	for i := range products {
+		response[i] = p.convertToProductResponse(products[i])
+	}
+
+	totalPages := int((total + int64(limit) - 1) / int64(limit))
+	meta := &helper.PaginatedMeta{
+		Page:      page,
+		Limit:     limit,
+		Total:     total,
+		TotalPage: totalPages,
+	}
+
+	return response, meta, err
+}
+
+func (p *productService) UpdateProduct(ctx context.Context, id uint, req *dto.UpdateProductRequest) (*dto.ProductResponse, error) {
+	product, err := p.productRepository.GetProductById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	product.CategoryId = req.CategoryId
+	product.Name = req.Name
+	product.Description = req.Description
+	product.Price = req.Price
+	product.Stock = req.Stock
+	if req.IsActive != nil {
+		product.IsActive = *req.IsActive
+	}
+
+	if err := p.productRepository.UpdateProduct(ctx, product); err != nil {
+		return nil, err
+	}
+
+	return p.GetProductById(ctx, product.Id)
+}
+
+func (p *productService) convertToProductResponse(product *domain.Product) *dto.ProductResponse {
+	images := make([]dto.ProductImageResponse, len(product.Images))
+	for i := range images {
+		images[i] = dto.ProductImageResponse{
+			Id:        product.Images[i].Id,
+			URL:       product.Images[i].URL,
+			AltText:   product.Images[i].AltText,
+			IsPrimary: product.Images[i].IsPrimary,
+		}
+	}
+
+	return &dto.ProductResponse{
+		Id:          product.Id,
+		CategoryId:  product.CategoryId,
+		Name:        product.Name,
+		Description: product.Description,
+		Price:       product.Price,
+		Stock:       product.Stock,
+		SKU:         product.SKU,
+		IsActive:    product.IsActive,
+		Category: dto.CategoryResponse{
+			Id:          product.Category.Id,
+			Name:        product.Category.Name,
+			Description: product.Category.Description,
+			IsActive:    product.Category.IsActive,
+		},
+		Images: images,
+	}
 }
 
 func NewProductService(productRepository repository.ProductRepository) ProductService {
