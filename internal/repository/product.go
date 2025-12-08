@@ -13,6 +13,12 @@ type ProductRepository interface {
 	GetCategories(ctx context.Context) ([]*domain.Category, error)
 	UpdateCategory(ctx context.Context, category *domain.Category) error
 	DeleteCategory(ctx context.Context, id uint) error
+
+	CreateProduct(ctx context.Context, product *domain.Product) error
+	GetProductById(ctx context.Context, id uint) (*domain.Product, error)
+	GetProducts(ctx context.Context, offset, limit int) ([]*domain.Product, error)
+	CountActiveProducts(ctx context.Context) (int64, error)
+	UpdateProduct(ctx context.Context, product *domain.Product) error
 }
 
 type productRepository struct {
@@ -50,6 +56,49 @@ func (p *productRepository) UpdateCategory(ctx context.Context, category *domain
 
 func (p *productRepository) DeleteCategory(ctx context.Context, id uint) error {
 	return p.dbWrite.WithContext(ctx).Delete(&domain.Category{}, id).Error
+}
+
+func (p *productRepository) CreateProduct(ctx context.Context, product *domain.Product) error {
+	return p.dbWrite.WithContext(ctx).Create(product).Error
+}
+
+func (p *productRepository) GetProductById(ctx context.Context, id uint) (*domain.Product, error) {
+	var product *domain.Product
+	if err := p.dbRead.WithContext(ctx).Preload("Category").Preload("Images").First(&product, id).Error; err != nil {
+		switch {
+		case errors.Is(err, gorm.ErrRecordNotFound):
+			return nil, ErrNotFound
+		}
+	}
+	return product, nil
+}
+
+func (p *productRepository) GetProducts(ctx context.Context, offset, limit int) ([]*domain.Product, error) {
+	var products []*domain.Product
+	if err := p.dbRead.
+		WithContext(ctx).
+		Preload("Category").
+		Preload("Images").
+		Where("is_active = ?", true).
+		Offset(offset).
+		Limit(limit).
+		Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	return products, nil
+}
+
+func (p *productRepository) CountActiveProducts(ctx context.Context) (int64, error) {
+	var total int64
+	if err := p.dbRead.WithContext(ctx).Model(&domain.Product{}).Where("is_active = ?", true).Count(&total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func (p *productRepository) UpdateProduct(ctx context.Context, product *domain.Product) error {
+	return p.dbWrite.WithContext(ctx).Save(product).Error
 }
 
 func NewProductRepository(dbWrite, dbRead *gorm.DB) ProductRepository {
