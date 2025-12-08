@@ -66,19 +66,24 @@ var runCmd = &cobra.Command{
 
 		userRepository := repository.NewUserRepository(gormDB, gormDB)
 		cartRepository := repository.NewCartRepository(gormDB, gormDB)
+		productRepository := repository.NewProductRepository(gormDB, gormDB)
 
 		authService := service.NewAuthService(cfg, userRepository, cartRepository)
 		userService := service.NewUserService(userRepository)
+		productService := service.NewProductService(productRepository)
 
 		authHandler := handlers.NewAuthHandler(authService)
 		userHandler := handlers.NewUserHandler(userService)
+		productHandler := handlers.NewProductHandler(productService)
 
 		authRoutes := routes.NewAuthRoutes(authHandler)
 		userRoutes := routes.NewUserRoutes(userHandler, authenticationMiddleware)
+		productRoutes := routes.NewProductRoutes(productHandler, authenticationMiddleware)
 		registerRoutes := routes.NewRegister(
 			routes.WithHealthRoute(healthRoutes),
 			routes.WithAuthRoute(authRoutes),
 			routes.WithUserRoute(userRoutes),
+			routes.WithProductRoute(productRoutes),
 			routes.WithMiddlewares(middleware),
 		)
 

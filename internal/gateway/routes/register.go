@@ -6,10 +6,11 @@ import (
 )
 
 type Register struct {
-	middlewares *middlewares.Middlewares
-	healthRoute *HealthRoutes
-	authRoute   *AuthRoutes
-	userRoute   *UserRoutes
+	middlewares  *middlewares.Middlewares
+	healthRoute  *HealthRoutes
+	authRoute    *AuthRoutes
+	userRoute    *UserRoutes
+	productRoute *ProductRoutes
 }
 
 type Options func(*Register)
@@ -32,6 +33,12 @@ func WithUserRoute(userRoute *UserRoutes) Options {
 	}
 }
 
+func WithProductRoute(productRoute *ProductRoutes) Options {
+	return func(r *Register) {
+		r.productRoute = productRoute
+	}
+}
+
 func WithMiddlewares(middlewares *middlewares.Middlewares) Options {
 	return func(r *Register) {
 		r.middlewares = middlewares
@@ -48,6 +55,7 @@ func (r *Register) RegisterRoutes() *gin.Engine {
 	r.healthRoute.HealthRoute(router)
 	r.authRoute.AuthRoute(router)
 	r.userRoute.UserRoute(router)
+	r.productRoute.ProductRoute(router)
 	return router
 }
 
