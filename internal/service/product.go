@@ -16,6 +16,7 @@ type ProductService interface {
 
 	CreateProduct(ctx context.Context, req *dto.CreateProductRequest) (*dto.ProductResponse, error)
 	GetProductById(ctx context.Context, id uint) (*dto.ProductResponse, error)
+	GetProducts(ctx context.Context, page, limit int) ([]*dto.ProductResponse, *helper.PaginatedMeta, error)
 	UpdateProduct(ctx context.Context, id uint, req *dto.UpdateProductRequest) (*dto.ProductResponse, error)
 	DeleteProduct(ctx context.Context, id uint) error
 }
