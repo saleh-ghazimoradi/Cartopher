@@ -17,6 +17,7 @@ type ProductService interface {
 	CreateProduct(ctx context.Context, req *dto.CreateProductRequest) (*dto.ProductResponse, error)
 	GetProductById(ctx context.Context, id uint) (*dto.ProductResponse, error)
 	UpdateProduct(ctx context.Context, id uint, req *dto.UpdateProductRequest) (*dto.ProductResponse, error)
+	DeleteProduct(ctx context.Context, id uint) error
 }
 
 type productService struct {
@@ -169,6 +170,10 @@ func (p *productService) UpdateProduct(ctx context.Context, id uint, req *dto.Up
 	}
 
 	return p.GetProductById(ctx, product.Id)
+}
+
+func (p *productService) DeleteProduct(ctx context.Context, id uint) error {
+	return p.productRepository.DeleteProduct(ctx, id)
 }
 
 func (p *productService) convertToProductResponse(product *domain.Product) *dto.ProductResponse {

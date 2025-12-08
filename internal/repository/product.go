@@ -19,6 +19,7 @@ type ProductRepository interface {
 	GetProducts(ctx context.Context, offset, limit int) ([]*domain.Product, error)
 	CountActiveProducts(ctx context.Context) (int64, error)
 	UpdateProduct(ctx context.Context, product *domain.Product) error
+	DeleteProduct(ctx context.Context, id uint) error
 }
 
 type productRepository struct {
@@ -99,6 +100,10 @@ func (p *productRepository) CountActiveProducts(ctx context.Context) (int64, err
 
 func (p *productRepository) UpdateProduct(ctx context.Context, product *domain.Product) error {
 	return p.dbWrite.WithContext(ctx).Save(product).Error
+}
+
+func (p *productRepository) DeleteProduct(ctx context.Context, id uint) error {
+	return p.dbWrite.WithContext(ctx).Delete(&domain.Product{}, id).Error
 }
 
 func NewProductRepository(dbWrite, dbRead *gorm.DB) ProductRepository {
