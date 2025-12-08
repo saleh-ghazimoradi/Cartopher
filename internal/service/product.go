@@ -11,6 +11,7 @@ type ProductService interface {
 	CreateCategory(ctx context.Context, req *dto.CreateCategoryRequest) (*dto.CategoryResponse, error)
 	GetCategories(ctx context.Context) ([]*dto.CategoryResponse, error)
 	UpdateCategory(ctx context.Context, id uint, req *dto.UpdateCategoryRequest) (*dto.CategoryResponse, error)
+	DeleteCategory(ctx context.Context, id uint) error
 }
 
 type productService struct {
@@ -76,6 +77,10 @@ func (p *productService) UpdateCategory(ctx context.Context, id uint, req *dto.U
 		Description: category.Description,
 		IsActive:    category.IsActive,
 	}, nil
+}
+
+func (p *productService) DeleteCategory(ctx context.Context, id uint) error {
+	return p.productRepository.DeleteCategory(ctx, id)
 }
 
 func NewProductService(productRepository repository.ProductRepository) ProductService {

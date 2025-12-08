@@ -12,6 +12,7 @@ type ProductRepository interface {
 	GetCategoryById(ctx context.Context, id uint) (*domain.Category, error)
 	GetCategories(ctx context.Context) ([]*domain.Category, error)
 	UpdateCategory(ctx context.Context, category *domain.Category) error
+	DeleteCategory(ctx context.Context, id uint) error
 }
 
 type productRepository struct {
@@ -45,6 +46,10 @@ func (p *productRepository) GetCategories(ctx context.Context) ([]*domain.Catego
 
 func (p *productRepository) UpdateCategory(ctx context.Context, category *domain.Category) error {
 	return p.dbWrite.WithContext(ctx).Save(category).Error
+}
+
+func (p *productRepository) DeleteCategory(ctx context.Context, id uint) error {
+	return p.dbWrite.WithContext(ctx).Delete(&domain.Category{}, id).Error
 }
 
 func NewProductRepository(dbWrite, dbRead *gorm.DB) ProductRepository {
