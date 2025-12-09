@@ -5,6 +5,7 @@ import (
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/service"
+	"github.com/saleh-ghazimoradi/Cartopher/pkg/uploadProvider"
 	"log"
 	"log/slog"
 	"os"
@@ -56,7 +57,12 @@ var runCmd = &cobra.Command{
 			log.Fatal().Err(err).Msg("Error connecting to database")
 		}
 
-		_ = gormDB
+		var uploadProviders uploadProvider.UploadProvider
+		if cfg.Upload.UploadProviders == "s3" {
+			uploadProviders = uploadProvider.NewS3Provider(cfg)
+		} else {
+			uploadProviders = uploadProvider.NewLocalUploadProvider(cfg.Upload.Path)
+		}
 
 		middleware := middlewares.NewMiddlewares()
 		authenticationMiddleware := middlewares.NewAuthentication(cfg)
@@ -71,10 +77,11 @@ var runCmd = &cobra.Command{
 		authService := service.NewAuthService(cfg, userRepository, cartRepository)
 		userService := service.NewUserService(userRepository)
 		productService := service.NewProductService(productRepository)
+		uploadService := service.NewUploadService(uploadProviders)
 
 		authHandler := handlers.NewAuthHandler(authService)
 		userHandler := handlers.NewUserHandler(userService)
-		productHandler := handlers.NewProductHandler(productService)
+		productHandler := handlers.NewProductHandler(productService, uploadService)
 
 		authRoutes := routes.NewAuthRoutes(authHandler)
 		userRoutes := routes.NewUserRoutes(userHandler, authenticationMiddleware)
