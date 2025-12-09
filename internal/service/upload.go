@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/saleh-ghazimoradi/Cartopher/pkg/uploadProvider"
 	"mime/multipart"
 	"path/filepath"
@@ -22,7 +23,9 @@ func (u *uploadService) UploadProductImage(productId uint, file *multipart.FileH
 		return "", fmt.Errorf("invalid file type: %s", ext)
 	}
 
-	path := fmt.Sprintf("products/%d/%s", productId, file.Filename)
+	newFileName := uuid.New().String()
+
+	path := fmt.Sprintf("products/%d/%s%s", productId, newFileName, ext)
 
 	return u.provider.UploadFile(file, path)
 }

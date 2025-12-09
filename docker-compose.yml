@@ -12,6 +12,16 @@ services:
     ports:
       - ${POSTGRES_PORT}:5432
 
+  cdn:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - ./pkg/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./uploads:/var/www/uploads
+    depends_on:
+      - localstack
+
   localstack:
     image: localstack/localstack:latest
     container_name: localstack
@@ -25,7 +35,7 @@ services:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
-      - ./aws/init/init-localstack.sh:/etc/localstack/init/ready.d/init.sh
+      - ./pkg/aws/init/init-localstack.sh:/etc/localstack/init/ready.d/init.sh
 
 volumes:
   db-data:
