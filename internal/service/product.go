@@ -15,6 +15,7 @@ type ProductService interface {
 	DeleteCategory(ctx context.Context, id uint) error
 
 	CreateProduct(ctx context.Context, req *dto.CreateProductRequest) (*dto.ProductResponse, error)
+	AddProductImage(ctx context.Context, productId uint, url, altText string) error
 	GetProductById(ctx context.Context, id uint) (*dto.ProductResponse, error)
 	GetProducts(ctx context.Context, page, limit int) ([]*dto.ProductResponse, *helper.PaginatedMeta, error)
 	UpdateProduct(ctx context.Context, id uint, req *dto.UpdateProductRequest) (*dto.ProductResponse, error)
@@ -105,6 +106,22 @@ func (p *productService) CreateProduct(ctx context.Context, req *dto.CreateProdu
 
 	return p.GetProductById(ctx, product.Id)
 
+}
+
+func (p *productService) AddProductImage(ctx context.Context, productId uint, url, altText string) error {
+	count, err := p.productRepository.GetProductImageCount(ctx, productId)
+	if err != nil {
+		return err
+	}
+
+	image := &domain.ProductImage{
+		ProductId: productId,
+		URL:       url,
+		AltText:   altText,
+		IsPrimary: count == 0,
+	}
+
+	return p.productRepository.CreateProductImage(ctx, image)
 }
 
 func (p *productService) GetProductById(ctx context.Context, id uint) (*dto.ProductResponse, error) {
