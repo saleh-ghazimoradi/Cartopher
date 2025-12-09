@@ -15,8 +15,10 @@ type ProductRepository interface {
 	DeleteCategory(ctx context.Context, id uint) error
 
 	CreateProduct(ctx context.Context, product *domain.Product) error
+	CreateProductImage(ctx context.Context, productImage *domain.ProductImage) error
 	GetProductById(ctx context.Context, id uint) (*domain.Product, error)
 	GetProducts(ctx context.Context, offset, limit int) ([]*domain.Product, error)
+	GetProductImageCount(ctx context.Context, id uint) (int64, error)
 	CountActiveProducts(ctx context.Context) (int64, error)
 	UpdateProduct(ctx context.Context, product *domain.Product) error
 	DeleteProduct(ctx context.Context, id uint) error
@@ -63,6 +65,10 @@ func (p *productRepository) CreateProduct(ctx context.Context, product *domain.P
 	return p.dbWrite.WithContext(ctx).Create(product).Error
 }
 
+func (p *productRepository) CreateProductImage(ctx context.Context, productImage *domain.ProductImage) error {
+	return p.dbWrite.WithContext(ctx).Create(productImage).Error
+}
+
 func (p *productRepository) GetProductById(ctx context.Context, id uint) (*domain.Product, error) {
 	var product *domain.Product
 	if err := p.dbRead.WithContext(ctx).Preload("Category").Preload("Images").First(&product, id).Error; err != nil {
@@ -88,6 +94,14 @@ func (p *productRepository) GetProducts(ctx context.Context, offset, limit int) 
 	}
 
 	return products, nil
+}
+
+func (p *productRepository) GetProductImageCount(ctx context.Context, id uint) (int64, error) {
+	var count int64
+	if err := p.dbRead.WithContext(ctx).Model(&domain.ProductImage{}).Where("id = ?", id).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func (p *productRepository) CountActiveProducts(ctx context.Context) (int64, error) {
