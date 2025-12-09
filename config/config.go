@@ -18,6 +18,7 @@ type Config struct {
 	Postgresql Postgresql
 	JWT        JWT
 	AWS        AWS
+	Upload     Upload
 }
 
 type Server struct {
@@ -57,8 +58,9 @@ type AWS struct {
 }
 
 type Upload struct {
-	Path        string `env:"UPLOAD_PATH"`
-	MaxFileSize int64  `env:"UPLOAD_MAX_FILE_SIZE"`
+	Path            string `env:"UPLOAD_PATH"`
+	MaxFileSize     int64  `env:"UPLOAD_MAX_FILE_SIZE"`
+	UploadProviders string `env:"UPLOAD_PROVIDERS"`
 }
 
 func GetInstance() (*Config, error) {

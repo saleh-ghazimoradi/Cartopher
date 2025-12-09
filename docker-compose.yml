@@ -25,6 +25,8 @@ services:
       - "4566:4566"
     volumes:
       - localstack_data:/var/lib/localstack
+      - ./aws/init/init-localstack.sh:/etc/localstack/init/ready.d/init.sh
+
 volumes:
   db-data:
   localstack_data:
