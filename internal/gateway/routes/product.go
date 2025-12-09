@@ -34,6 +34,7 @@ func (p *ProductRoutes) ProductRoute(router *gin.Engine) {
 	products.POST("/", p.authMiddleware.AdminMiddleware(), p.productHandler.CreateProduct)
 	products.PUT("/:id", p.authMiddleware.AdminMiddleware(), p.productHandler.UpdateProduct)
 	products.DELETE("/:id", p.authMiddleware.AdminMiddleware(), p.productHandler.DeleteProduct)
+	products.POST("/:id/images", p.authMiddleware.AdminMiddleware(), p.productHandler.UploadProductImage)
 
 }
 

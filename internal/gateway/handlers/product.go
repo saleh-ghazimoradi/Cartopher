@@ -10,6 +10,7 @@ import (
 
 type ProductHandler struct {
 	productService service.ProductService
+	uploadService  service.UploadService
 }
 
 func (p *ProductHandler) CreateCategory(ctx *gin.Context) {
@@ -157,8 +158,36 @@ func (p *ProductHandler) DeleteProduct(ctx *gin.Context) {
 	helper.SuccessResponse(ctx, "Product successfully deleted", nil)
 }
 
-func NewProductHandler(productService service.ProductService) *ProductHandler {
+func (p *ProductHandler) UploadProductImage(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	if err != nil {
+		helper.BadRequestResponse(ctx, "Invalid id given", err)
+		return
+	}
+
+	file, err := ctx.FormFile("image")
+	if err != nil {
+		helper.BadRequestResponse(ctx, "No file uploaded", err)
+		return
+	}
+
+	url, err := p.uploadService.UploadProductImage(uint(id), file)
+	if err != nil {
+		helper.InternalServerError(ctx, "Error uploading product image", err)
+		return
+	}
+
+	if err := p.productService.AddProductImage(ctx, uint(id), url, file.Filename); err != nil {
+		helper.InternalServerError(ctx, "Error adding product image", err)
+		return
+	}
+
+	helper.SuccessResponse(ctx, "Product image successfully uploaded", url)
+}
+
+func NewProductHandler(productService service.ProductService, uploadService service.UploadService) *ProductHandler {
 	return &ProductHandler{
 		productService: productService,
+		uploadService:  uploadService,
 	}
 }
