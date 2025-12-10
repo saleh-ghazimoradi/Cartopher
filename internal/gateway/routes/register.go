@@ -11,6 +11,7 @@ type Register struct {
 	authRoute    *AuthRoutes
 	userRoute    *UserRoutes
 	productRoute *ProductRoutes
+	cartRoute    *CartRoutes
 }
 
 type Options func(*Register)
@@ -39,6 +40,12 @@ func WithProductRoute(productRoute *ProductRoutes) Options {
 	}
 }
 
+func WithCartRoute(cartRoute *CartRoutes) Options {
+	return func(r *Register) {
+		r.cartRoute = cartRoute
+	}
+}
+
 func WithMiddlewares(middlewares *middlewares.Middlewares) Options {
 	return func(r *Register) {
 		r.middlewares = middlewares
@@ -56,6 +63,7 @@ func (r *Register) RegisterRoutes() *gin.Engine {
 	r.authRoute.AuthRoute(router)
 	r.userRoute.UserRoute(router)
 	r.productRoute.ProductRoute(router)
+	r.cartRoute.cartRoute(router)
 	return router
 }
 

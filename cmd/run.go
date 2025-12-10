@@ -78,19 +78,23 @@ var runCmd = &cobra.Command{
 		userService := service.NewUserService(userRepository)
 		productService := service.NewProductService(productRepository)
 		uploadService := service.NewUploadService(uploadProviders)
+		cartService := service.NewCartService(cartRepository, productRepository)
 
 		authHandler := handlers.NewAuthHandler(authService)
 		userHandler := handlers.NewUserHandler(userService)
 		productHandler := handlers.NewProductHandler(productService, uploadService)
+		cartHandler := handlers.NewCartHandler(cartService)
 
 		authRoutes := routes.NewAuthRoutes(authHandler)
 		userRoutes := routes.NewUserRoutes(userHandler, authenticationMiddleware)
 		productRoutes := routes.NewProductRoutes(productHandler, authenticationMiddleware)
+		cartRoutes := routes.NewCartRoutes(cartHandler, authenticationMiddleware)
 		registerRoutes := routes.NewRegister(
 			routes.WithHealthRoute(healthRoutes),
 			routes.WithAuthRoute(authRoutes),
 			routes.WithUserRoute(userRoutes),
 			routes.WithProductRoute(productRoutes),
+			routes.WithCartRoute(cartRoutes),
 			routes.WithMiddlewares(middleware),
 		)
 
