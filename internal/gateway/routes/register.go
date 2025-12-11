@@ -2,7 +2,10 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	_ "github.com/saleh-ghazimoradi/Cartopher/docs"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/gateway/middlewares"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Register struct {
@@ -65,6 +68,12 @@ func (r *Register) RegisterRoutes() *gin.Engine {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(r.middlewares.CorsMiddleware())
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	router.Static("/docs", "./docs")
+
+	router.StaticFile("/api-docs", "./docs/rapidoc.html")
 
 	r.healthRoute.HealthRoute(router)
 	r.authRoute.AuthRoute(router)

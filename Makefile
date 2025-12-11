@@ -34,3 +34,8 @@ migrate-up:
 
 migrate-down:
 	go run . migrateDown
+
+docs-generate:
+	mkdir -p docs
+	swag init -g main.go -o docs --parseDependency --parseInternal --exclude .git,docker-compose.yml,infra
+
