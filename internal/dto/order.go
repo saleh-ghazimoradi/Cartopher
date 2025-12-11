@@ -35,8 +35,9 @@ type OrderResponse struct {
 }
 
 type OrderItemResponse struct {
-	Id       uint            `json:"id"`
-	Product  ProductResponse `json:"product"`
-	Quantity int             `json:"quantity"`
-	Price    float64         `json:"price"`
+	Id        uint            `json:"id"`
+	Product   ProductResponse `json:"product"`
+	Quantity  int             `json:"quantity"`
+	Price     float64         `json:"price"`
+	CreatedAt time.Time       `json:"created_at"`
 }
