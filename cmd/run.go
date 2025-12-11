@@ -73,28 +73,33 @@ var runCmd = &cobra.Command{
 		userRepository := repository.NewUserRepository(gormDB, gormDB)
 		cartRepository := repository.NewCartRepository(gormDB, gormDB)
 		productRepository := repository.NewProductRepository(gormDB, gormDB)
+		orderRepository := repository.NewOrderRepository(gormDB, gormDB)
 
 		authService := service.NewAuthService(cfg, userRepository, cartRepository)
 		userService := service.NewUserService(userRepository)
 		productService := service.NewProductService(productRepository)
 		uploadService := service.NewUploadService(uploadProviders)
 		cartService := service.NewCartService(cartRepository, productRepository)
+		orderService := service.NewOrderService(orderRepository, cartRepository, productRepository, gormDB)
 
 		authHandler := handlers.NewAuthHandler(authService)
 		userHandler := handlers.NewUserHandler(userService)
 		productHandler := handlers.NewProductHandler(productService, uploadService)
 		cartHandler := handlers.NewCartHandler(cartService)
+		orderHandler := handlers.NewOrderHandler(orderService)
 
 		authRoutes := routes.NewAuthRoutes(authHandler)
 		userRoutes := routes.NewUserRoutes(userHandler, authenticationMiddleware)
 		productRoutes := routes.NewProductRoutes(productHandler, authenticationMiddleware)
 		cartRoutes := routes.NewCartRoutes(cartHandler, authenticationMiddleware)
+		orderRoutes := routes.NewOrderRoutes(orderHandler, authenticationMiddleware)
 		registerRoutes := routes.NewRegister(
 			routes.WithHealthRoute(healthRoutes),
 			routes.WithAuthRoute(authRoutes),
 			routes.WithUserRoute(userRoutes),
 			routes.WithProductRoute(productRoutes),
 			routes.WithCartRoute(cartRoutes),
+			routes.WithOrderRoute(orderRoutes),
 			routes.WithMiddlewares(middleware),
 		)
 
