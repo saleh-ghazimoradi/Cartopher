@@ -45,7 +45,7 @@ func (c *cartRepository) GetCartByUserId(ctx context.Context, userId uint) (*dom
 
 func (c *cartRepository) GetCartWithItemsAndProducts(ctx context.Context, userId uint) (*domain.Cart, error) {
 	var cart domain.Cart
-	if err := exec(c.dbRead, c.tx).WithContext(ctx).Preload("CartItems.Product").Where("user_id = ?", userId).Find(&cart).Error; err != nil {
+	if err := exec(c.dbRead, c.tx).WithContext(ctx).Preload("CartItems.Product").Where("user_id = ?", userId).First(&cart).Error; err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, ErrNotFound
@@ -108,7 +108,7 @@ func (c *cartRepository) GetCartItemWithUser(ctx context.Context, userId, itemId
 }
 
 func (c *cartRepository) DeleteCartItem(ctx context.Context, userId, itemId uint) error {
-	return exec(c.dbWrite, c.tx).WithContext(ctx).Where(
+	return exec(c.dbWrite, c.tx).WithContext(ctx).Unscoped().Where(
 		"id = ? AND cart_id IN (?)",
 		itemId,
 		c.dbRead.Select("id").Table("carts").Where("user_id = ?", userId),
