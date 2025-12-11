@@ -20,20 +20,22 @@ type UserRepository interface {
 	GetValidRefreshToken(ctx context.Context, token string) (*domain.RefreshToken, error)
 	DeleteRefreshToken(ctx context.Context, token string) error
 	DeleteRefreshTokenById(ctx context.Context, id uint) error
+	WithTx(tx *gorm.DB) UserRepository
 }
 
 type userRepository struct {
 	dbWrite *gorm.DB
 	dbRead  *gorm.DB
+	tx      *gorm.DB
 }
 
 func (u *userRepository) CreateUser(ctx context.Context, user *domain.User) error {
-	return u.dbWrite.WithContext(ctx).Create(user).Error
+	return exec(u.dbWrite, u.tx).WithContext(ctx).Create(user).Error
 }
 
 func (u *userRepository) GetUserById(ctx context.Context, id uint) (*domain.User, error) {
 	var user *domain.User
-	if err := u.dbRead.WithContext(ctx).First(&user, id).Error; err != nil {
+	if err := exec(u.dbRead, u.tx).WithContext(ctx).First(&user, id).Error; err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, ErrNotFound
@@ -46,7 +48,7 @@ func (u *userRepository) GetUserById(ctx context.Context, id uint) (*domain.User
 
 func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var user *domain.User
-	if err := u.dbRead.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+	if err := exec(u.dbRead, u.tx).WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, ErrNotFound
@@ -59,7 +61,7 @@ func (u *userRepository) GetUserByEmail(ctx context.Context, email string) (*dom
 
 func (u *userRepository) GetUserByEmailAndActive(ctx context.Context, email string, isActive bool) (*domain.User, error) {
 	var user *domain.User
-	if err := u.dbRead.WithContext(ctx).Where("email = ? AND is_active = ?", email, isActive).First(&user).Error; err != nil {
+	if err := exec(u.dbRead, u.tx).WithContext(ctx).Where("email = ? AND is_active = ?", email, isActive).First(&user).Error; err != nil {
 		switch {
 		case errors.Is(err, gorm.ErrRecordNotFound):
 			return nil, ErrNotFound
@@ -71,31 +73,39 @@ func (u *userRepository) GetUserByEmailAndActive(ctx context.Context, email stri
 }
 
 func (u *userRepository) UpdateUser(ctx context.Context, user *domain.User) error {
-	return u.dbWrite.WithContext(ctx).Save(user).Error
+	return exec(u.dbWrite, u.tx).WithContext(ctx).Save(user).Error
 }
 
 func (u *userRepository) DeleteUser(ctx context.Context, id uint) error {
-	return u.dbWrite.WithContext(ctx).Delete(&domain.User{}, id).Error
+	return exec(u.dbWrite, u.tx).WithContext(ctx).Delete(&domain.User{}, id).Error
 }
 
 func (u *userRepository) CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error {
-	return u.dbWrite.WithContext(ctx).Create(token).Error
+	return exec(u.dbWrite, u.tx).WithContext(ctx).Create(token).Error
 }
 
 func (u *userRepository) GetValidRefreshToken(ctx context.Context, token string) (*domain.RefreshToken, error) {
 	var refreshToken *domain.RefreshToken
-	if err := u.dbRead.WithContext(ctx).Where("token = ? AND expires_at > ?", token, time.Now()).First(&refreshToken).Error; err != nil {
+	if err := exec(u.dbRead, u.tx).WithContext(ctx).Where("token = ? AND expires_at > ?", token, time.Now()).First(&refreshToken).Error; err != nil {
 		return nil, err
 	}
 	return refreshToken, nil
 }
 
 func (u *userRepository) DeleteRefreshToken(ctx context.Context, token string) error {
-	return u.dbWrite.WithContext(ctx).Where("token = ?", token).Delete(&domain.RefreshToken{}).Error
+	return exec(u.dbWrite, u.tx).WithContext(ctx).Where("token = ?", token).Delete(&domain.RefreshToken{}).Error
 }
 
 func (u *userRepository) DeleteRefreshTokenById(ctx context.Context, id uint) error {
-	return u.dbWrite.WithContext(ctx).Delete(&domain.RefreshToken{}, id).Error
+	return exec(u.dbWrite, u.tx).WithContext(ctx).Delete(&domain.RefreshToken{}, id).Error
+}
+
+func (u *userRepository) WithTx(tx *gorm.DB) UserRepository {
+	return &userRepository{
+		dbWrite: u.dbWrite,
+		dbRead:  u.dbRead,
+		tx:      tx,
+	}
 }
 
 func NewUserRepository(dbWrite, dbRead *gorm.DB) UserRepository {
