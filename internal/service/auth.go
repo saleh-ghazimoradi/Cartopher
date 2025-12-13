@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/saleh-ghazimoradi/Cartopher/config"
+	"github.com/saleh-ghazimoradi/Cartopher/infra/events"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/domain"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/dto"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
@@ -20,6 +22,7 @@ type AuthService interface {
 
 type authService struct {
 	cfg            *config.Config
+	eventPublisher events.Publisher
 	userRepository repository.UserRepository
 	cartRepository repository.CartRepository
 }
@@ -117,6 +120,10 @@ func (a *authService) generateAuthResponse(ctx context.Context, user *domain.Use
 		return nil, err
 	}
 
+	if err := a.eventPublisher.Publish("USER_LOGGED_IN", user, map[string]string{}); err != nil {
+		return nil, fmt.Errorf("unable to publish user login event: %w", err)
+	}
+
 	return &dto.AuthResponse{
 		User: dto.UserResponse{
 			Id:        user.Id,
@@ -132,9 +139,10 @@ func (a *authService) generateAuthResponse(ctx context.Context, user *domain.Use
 	}, nil
 }
 
-func NewAuthService(cfg *config.Config, userRepository repository.UserRepository, cartRepository repository.CartRepository) AuthService {
+func NewAuthService(cfg *config.Config, eventPublisher events.Publisher, userRepository repository.UserRepository, cartRepository repository.CartRepository) AuthService {
 	return &authService{
 		cfg:            cfg,
+		eventPublisher: eventPublisher,
 		userRepository: userRepository,
 		cartRepository: cartRepository,
 	}

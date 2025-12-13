@@ -55,6 +55,7 @@ type AWS struct {
 	SecretAccessKey string `env:"AWS_SECRET_ACCESS_KEY"`
 	S3Bucket        string `env:"AWS_S3_BUCKET"`
 	S3Endpoint      string `env:"AWS_S3_ENDPOINT"`
+	EventQueueName  string `env:"AWS_EVENT_QUEUE_NAME"`
 }
 
 type Upload struct {

@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"github.com/saleh-ghazimoradi/Cartopher/infra/events"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/service"
@@ -52,6 +54,8 @@ var runCmd = &cobra.Command{
 			postgresql.WithLogger(&log),
 		)
 
+		ctx := context.Background()
+
 		gormDB, _, err := postDB.Connect()
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error connecting to database")
@@ -66,7 +70,10 @@ var runCmd = &cobra.Command{
 
 		middleware := middlewares.NewMiddlewares()
 		authenticationMiddleware := middlewares.NewAuthentication(cfg)
-
+		eventPublisher, err := events.NewWatermillEventPublisher(ctx, cfg)
+		if err != nil {
+			log.Error().Err(err).Msg("Error creating event publisher")
+		}
 		healthHandler := handlers.NewHealthHandler()
 		healthRoutes := routes.NewHealthRoutes(healthHandler)
 
@@ -75,7 +82,7 @@ var runCmd = &cobra.Command{
 		productRepository := repository.NewProductRepository(gormDB, gormDB)
 		orderRepository := repository.NewOrderRepository(gormDB, gormDB)
 
-		authService := service.NewAuthService(cfg, userRepository, cartRepository)
+		authService := service.NewAuthService(cfg, eventPublisher, userRepository, cartRepository)
 		userService := service.NewUserService(userRepository)
 		productService := service.NewProductService(productRepository)
 		uploadService := service.NewUploadService(uploadProviders)
