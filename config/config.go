@@ -19,6 +19,7 @@ type Config struct {
 	JWT        JWT
 	AWS        AWS
 	Upload     Upload
+	SMTP       SMTP
 }
 
 type Server struct {
@@ -62,6 +63,14 @@ type Upload struct {
 	Path            string `env:"UPLOAD_PATH"`
 	MaxFileSize     int64  `env:"UPLOAD_MAX_FILE_SIZE"`
 	UploadProviders string `env:"UPLOAD_PROVIDERS"`
+}
+
+type SMTP struct {
+	Host     string `env:"SMTP_HOST"`
+	Port     int    `env:"SMTP_PORT"`
+	Username string `env:"SMTP_USERNAME"`
+	Password string `env:"SMTP_PASSWORD"`
+	From     string `env:"SMTP_FROM"`
 }
 
 func GetInstance() (*Config, error) {

@@ -12,10 +12,14 @@ help:
 	@echo "  make migrate-down - Rollback database migrations"
 
 build:
-	go build -o bin/app
+	mkdir -p bin
+	go build -o bin/cartopher
 
 run:
 	go run . run
+
+notifier:
+	go run . notifier
 
 dev:
 	go run . run
