@@ -8,6 +8,10 @@ import (
 	"net/smtp"
 )
 
+const (
+	UserLoggedIn = "USER_LOGGED_IN"
+)
+
 type Notifier interface {
 	Send(email *dto.Email) error
 	SendLoginNotification(userEmail, username string) error
@@ -82,6 +86,8 @@ The Cartopher Team,`, username),
 	return e.Send(email)
 }
 
-func NewEmailNotifier() Notifier {
-	return &emailNotifier{}
+func NewEmailNotifier(cfg *config.Config) Notifier {
+	return &emailNotifier{
+		cfg: cfg,
+	}
 }

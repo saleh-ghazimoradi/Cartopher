@@ -120,7 +120,7 @@ func (a *authService) generateAuthResponse(ctx context.Context, user *domain.Use
 		return nil, err
 	}
 
-	if err := a.eventPublisher.Publish("USER_LOGGED_IN", user, map[string]string{}); err != nil {
+	if err := a.eventPublisher.Publish(UserLoggedIn, user, map[string]string{}); err != nil {
 		return nil, fmt.Errorf("unable to publish user login event: %w", err)
 	}
 
