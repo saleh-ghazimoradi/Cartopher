@@ -100,7 +100,8 @@ func (s *Server) Connect() error {
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		se := <-quit
-		s.logger.Println("caught signal", "signal", se.String())
+
+		s.logger.Info().Str("signal", se.String()).Msg("caught shutdown signal")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -109,8 +110,7 @@ func (s *Server) Connect() error {
 		if err != nil {
 			shutdownError <- err
 		}
-
-		s.logger.Println("completing background task", "addr", server.Addr)
+		s.logger.Info().Str("addr", server.Addr).Msg("completing background task")
 		s.WG.Wait()
 		shutdownError <- nil
 	}()
@@ -123,7 +123,7 @@ func (s *Server) Connect() error {
 		return err
 	}
 
-	s.logger.Println("stopped server", "addr", server.Addr)
+	s.logger.Info().Str("addr", addr).Msg("server stopped")
 
 	return nil
 }
