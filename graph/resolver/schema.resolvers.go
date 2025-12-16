@@ -112,17 +112,53 @@ func (r *mutationResolver) DeleteCategory(ctx context.Context, id string) (bool,
 
 // CreateProduct is the resolver for the createProduct field.
 func (r *mutationResolver) CreateProduct(ctx context.Context, input dto.CreateProductRequest) (*dto.ProductResponse, error) {
-	panic(fmt.Errorf("not implemented: CreateProduct - createProduct"))
+	if !IsAdminFromContext(ctx) {
+		return nil, ErrUnauthorized
+	}
+
+	product, err := r.productService.CreateProduct(ctx, &input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create product: %w", err)
+	}
+
+	return product, nil
 }
 
 // UpdateProduct is the resolver for the updateProduct field.
 func (r *mutationResolver) UpdateProduct(ctx context.Context, id string, input dto.UpdateProductRequest) (*dto.ProductResponse, error) {
-	panic(fmt.Errorf("not implemented: UpdateProduct - updateProduct"))
+	if !IsAdminFromContext(ctx) {
+		return nil, ErrUnauthorized
+	}
+
+	productId, err := r.parseId(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse product id: %w", err)
+	}
+
+	product, err := r.productService.UpdateProduct(ctx, productId, &input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update product: %w", err)
+	}
+
+	return product, nil
 }
 
 // DeleteProduct is the resolver for the deleteProduct field.
 func (r *mutationResolver) DeleteProduct(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented: DeleteProduct - deleteProduct"))
+	if !IsAdminFromContext(ctx) {
+		return false, ErrUnauthorized
+	}
+
+	productId, err := r.parseId(id)
+	if err != nil {
+		return false, fmt.Errorf("failed to parse product id: %w", err)
+	}
+
+	if err := r.productService.DeleteProduct(ctx, productId); err != nil {
+		return false, fmt.Errorf("failed to delete product: %w", err)
+	}
+
+	return true, nil
 }
 
 // AddToCart is the resolver for the addToCart field.
@@ -162,12 +198,55 @@ func (r *queryResolver) Me(ctx context.Context) (*dto.UserResponse, error) {
 
 // Products is the resolver for the products field.
 func (r *queryResolver) Products(ctx context.Context, page *int, limit *int) (*model.ProductConnection, error) {
-	panic(fmt.Errorf("not implemented: Products - products"))
+	p := 1
+	l := 10
+
+	if page != nil {
+		p = *page
+	}
+
+	if limit != nil {
+		l = *limit
+	}
+
+	products, meta, err := r.productService.GetProducts(ctx, p, l)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch products: %w", err)
+	}
+
+	edges := make([]*model.ProductEdge, len(products))
+
+	for i, product := range products {
+		edges[i] = &model.ProductEdge{
+			Node: product,
+		}
+	}
+
+	return &model.ProductConnection{
+		Edges: edges,
+		PageInfo: &model.PageInfo{
+			Page:       meta.Page,
+			Limit:      meta.Limit,
+			Total:      int(meta.Total),
+			TotalPages: meta.TotalPage,
+		},
+	}, nil
 }
 
 // Product is the resolver for the product field.
 func (r *queryResolver) Product(ctx context.Context, id string) (*dto.ProductResponse, error) {
-	panic(fmt.Errorf("not implemented: Product - product"))
+
+	productId, err := r.parseId(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse product id: %w", err)
+	}
+
+	product, err := r.productService.GetProductById(ctx, productId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch product: %w", err)
+	}
+
+	return product, nil
 }
 
 // Categories is the resolver for the categories field.
