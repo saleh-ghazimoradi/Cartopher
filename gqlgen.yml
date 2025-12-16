@@ -1,0 +1,67 @@
+schema:
+  - graph/schema/*.graphqls
+
+exec:
+  filename: graph/generated.go  # Main generated file with GraphQL execution code
+  package: graph               # Go package name for generated execution code
+
+model:
+  filename: graph/model/models_gen.go  # File for generated Go structs for GraphQL types
+  package: model                       # Go package name for generated models
+
+resolver:
+  layout: follow-schema                    # Options: single-file, follow-schema
+  # follow-schema: creates separate files per schema type (Query, Mutation, etc.)
+  # single-file: puts all resolvers in one file
+
+  dir: graph/resolver                     # Directory where resolver files are generated
+  package: resolver                       # Go package name for resolver files
+  filename_template: "{name}.resolvers.go" # Template for resolver filenames (e.g., schema.resolvers.go)
+
+autobind:
+  - "github.com/saleh-ghazimoradi/Cartopher/internal/dto"
+
+models:
+  User:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.UserResponse
+  AuthPayload:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.AuthResponse
+  Product:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.ProductResponse
+  Category:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.CategoryResponse
+  Cart:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.CartResponse
+  CartItem:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.CartItemResponse
+  Order:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.OrderResponse
+  OrderItem:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.OrderItemResponse
+  ProductImage:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.ProductImageResponse
+
+  RegisterInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.RegisterRequest
+  LoginInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.LoginRequest
+  RefreshTokenInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.RefreshTokenRequest
+  UpdateProfileInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.UpdateProfileRequest
+  CreateCategoryInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.CreateCategoryRequest
+  UpdateCategoryInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.UpdateCategoryRequest
+  UpdateCartItemInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.UpdateCartItemRequest
+  CreateProductInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.CreateProductRequest
+  UpdateProductInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.UpdateProductRequest
+  AddToCartInput:
+    model: github.com/saleh-ghazimoradi/Cartopher/internal/dto.AddToCartRequest
+  ID:
+    model: github.com/99designs/gqlgen/graphql.String
+  UInt:
+    model: github.com/99designs/gqlgen/graphql.Uint
