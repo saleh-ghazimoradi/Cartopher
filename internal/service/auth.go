@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/saleh-ghazimoradi/Cartopher/config"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/events"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/domain"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/dto"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
 	"github.com/saleh-ghazimoradi/Cartopher/utils"
-	"time"
 )
 
 type AuthService interface {

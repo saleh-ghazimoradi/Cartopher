@@ -3,15 +3,16 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"log"
+	"log/slog"
+	"os"
+	"sync"
+
 	"github.com/saleh-ghazimoradi/Cartopher/infra/events"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/service"
 	"github.com/saleh-ghazimoradi/Cartopher/pkg/uploadProvider"
-	"log"
-	"log/slog"
-	"os"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/saleh-ghazimoradi/Cartopher/config"

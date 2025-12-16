@@ -2,11 +2,12 @@ package service
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/saleh-ghazimoradi/Cartopher/pkg/uploadProvider"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/saleh-ghazimoradi/Cartopher/pkg/uploadProvider"
 )
 
 type UploadService interface {

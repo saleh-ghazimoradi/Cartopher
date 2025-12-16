@@ -2,9 +2,10 @@ package utils
 
 import (
 	"errors"
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/saleh-ghazimoradi/Cartopher/config"
-	"time"
 )
 
 type Claims struct {

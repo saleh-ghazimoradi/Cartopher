@@ -1,12 +1,13 @@
 package middlewares
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/saleh-ghazimoradi/Cartopher/config"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/domain"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/helper"
 	"github.com/saleh-ghazimoradi/Cartopher/utils"
-	"strings"
 )
 
 type Authentication struct {

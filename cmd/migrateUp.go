@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/saleh-ghazimoradi/Cartopher/config"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/migrations"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/logger"
-	"log"
 
 	"github.com/spf13/cobra"
 )

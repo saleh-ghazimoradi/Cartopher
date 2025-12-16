@@ -3,9 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
+
 	"github.com/saleh-ghazimoradi/Cartopher/internal/domain"
 	"gorm.io/gorm"
-	"time"
 )
 
 type UserRepository interface {

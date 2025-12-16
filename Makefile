@@ -10,6 +10,7 @@ help:
 	@echo "  make docker-down  - Stop Docker containers"
 	@echo "  make migrate-up   - Apply database migrations"
 	@echo "  make migrate-down - Rollback database migrations"
+	@echo "  make graphql-generate - Generate graphql schema"
 
 build:
 	mkdir -p bin
@@ -42,4 +43,8 @@ migrate-down:
 docs-generate:
 	mkdir -p docs
 	swag init -g main.go -o docs --parseDependency --parseInternal --exclude .git,docker-compose.yml,infra
+
+graphql-generate:
+	go get github.com/99designs/gqlgen@v0.17.78
+	go run github.com/99designs/gqlgen generate
 

@@ -2,10 +2,11 @@ package service
 
 import (
 	"fmt"
-	"github.com/saleh-ghazimoradi/Cartopher/config"
-	"github.com/saleh-ghazimoradi/Cartopher/internal/dto"
 	"net"
 	"net/smtp"
+
+	"github.com/saleh-ghazimoradi/Cartopher/config"
+	"github.com/saleh-ghazimoradi/Cartopher/internal/dto"
 )
 
 const (
@@ -22,7 +23,7 @@ type emailNotifier struct {
 }
 
 func (e *emailNotifier) Send(email *dto.Email) error {
-	addr := fmt.Sprintf("%s:%d", e.cfg.SMTP.Host, e.cfg.SMTP.Port)
+	addr := net.JoinHostPort(e.cfg.SMTP.Host, fmt.Sprintf("%d", e.cfg.SMTP.Port))
 
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
