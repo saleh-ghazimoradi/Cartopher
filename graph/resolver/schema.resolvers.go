@@ -217,7 +217,17 @@ func (r *mutationResolver) RemoveFromCart(ctx context.Context, id string) (bool,
 
 // CreateOrder is the resolver for the createOrder field.
 func (r *mutationResolver) CreateOrder(ctx context.Context) (*dto.OrderResponse, error) {
-	panic(fmt.Errorf("not implemented: CreateOrder - createOrder"))
+	userId, err := GetUserIdFromContext(ctx)
+	if err != nil {
+		return nil, ErrUnauthorized
+	}
+
+	order, err := r.orderService.CreateOrder(ctx, userId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create order: %w", err)
+	}
+
+	return order, nil
 }
 
 // Me is the resolver for the me field.
@@ -237,17 +247,7 @@ func (r *queryResolver) Me(ctx context.Context) (*dto.UserResponse, error) {
 
 // Products is the resolver for the products field.
 func (r *queryResolver) Products(ctx context.Context, page *int, limit *int) (*model.ProductConnection, error) {
-	p := 1
-	l := 10
-
-	if page != nil {
-		p = *page
-	}
-
-	if limit != nil {
-		l = *limit
-	}
-
+	p, l := getPagingNumbers(page, limit)
 	products, meta, err := r.productService.GetProducts(ctx, p, l)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch products: %w", err)
@@ -319,12 +319,54 @@ func (r *queryResolver) Cart(ctx context.Context) (*dto.CartResponse, error) {
 
 // Orders is the resolver for the orders field.
 func (r *queryResolver) Orders(ctx context.Context, page *int, limit *int) (*model.OrderConnection, error) {
-	panic(fmt.Errorf("not implemented: Orders - orders"))
+	userId, err := GetUserIdFromContext(ctx)
+	if err != nil {
+		return nil, ErrUnauthorized
+	}
+
+	p, l := getPagingNumbers(page, limit)
+
+	orders, meta, err := r.orderService.GetOrders(ctx, userId, p, l)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch orders: %w", err)
+	}
+
+	edges := make([]*model.OrderEdge, len(orders))
+	for i, order := range orders {
+		edges[i] = &model.OrderEdge{
+			Node: order,
+		}
+	}
+
+	return &model.OrderConnection{
+		Edges: edges,
+		PageInfo: &model.PageInfo{
+			Page:       meta.Page,
+			Limit:      meta.Limit,
+			Total:      int(meta.Total),
+			TotalPages: meta.TotalPage,
+		},
+	}, nil
 }
 
 // Order is the resolver for the order field.
 func (r *queryResolver) Order(ctx context.Context, id string) (*dto.OrderResponse, error) {
-	panic(fmt.Errorf("not implemented: Order - order"))
+	userId, err := GetUserIdFromContext(ctx)
+	if err != nil {
+		return nil, ErrUnauthorized
+	}
+
+	orderId, err := r.parseId(id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse order id: %w", err)
+	}
+
+	order, err := r.orderService.GetOrder(ctx, userId, orderId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch order: %w", err)
+	}
+
+	return order, nil
 }
 
 // Mutation returns graph.MutationResolver implementation.
@@ -335,3 +377,25 @@ func (r *Resolver) Query() graph.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+
+func getPagingNumbers(page, limit *int) (int, int) {
+	p, l := 0, 0
+
+	if page != nil {
+		p = *page
+	}
+
+	if limit != nil {
+		l = *limit
+	}
+
+	if p <= 0 {
+		p = 1
+	}
+
+	if l <= 0 {
+		l = 10
+	}
+
+	return p, l
+}
