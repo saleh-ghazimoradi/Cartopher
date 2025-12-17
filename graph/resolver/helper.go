@@ -3,6 +3,7 @@ package resolver
 import (
 	"context"
 	"errors"
+	"github.com/saleh-ghazimoradi/Cartopher/utils"
 )
 
 const (
@@ -14,7 +15,7 @@ var (
 )
 
 func GetUserIdFromContext(ctx context.Context) (uint, error) {
-	userId := ctx.Value("user_id")
+	userId := ctx.Value(utils.UserIdKey)
 
 	if userId == nil {
 		return 0, ErrUnauthorized
@@ -28,7 +29,7 @@ func GetUserIdFromContext(ctx context.Context) (uint, error) {
 }
 
 func GetUserRoleFromContext(ctx context.Context) (string, error) {
-	userRole := ctx.Value("user_role")
+	userRole := ctx.Value(utils.UserRoleKey)
 
 	if userRole == nil {
 		return "", ErrUnauthorized

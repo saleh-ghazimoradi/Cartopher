@@ -70,9 +70,10 @@ func (a *Authentication) GraphqlMiddleware() gin.HandlerFunc {
 		userEmail, _ := c.Get("user_email")
 		userRole, _ := c.Get("user_role")
 
-		ctx := context.WithValue(c.Request.Context(), "user_id", userId)
-		ctx = context.WithValue(ctx, "user_email", userEmail)
-		ctx = context.WithValue(ctx, "user_role", userRole)
+		ctx := context.WithValue(c.Request.Context(), utils.UserIdKey, userId)
+		ctx = context.WithValue(ctx, utils.UserEmailKey, userEmail)
+		ctx = context.WithValue(ctx, utils.UserRoleKey, userRole)
+		ctx = context.WithValue(ctx, utils.GinContextKey, c)
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()
 	}
