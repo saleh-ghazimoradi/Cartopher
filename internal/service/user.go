@@ -30,6 +30,8 @@ func (u *userService) GetProfile(ctx context.Context, userId uint) (*dto.UserRes
 		Phone:     user.Phone,
 		Role:      string(user.Role),
 		IsActive:  user.IsActive,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}, nil
 }
 

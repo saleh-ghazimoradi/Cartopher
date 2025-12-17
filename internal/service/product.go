@@ -42,6 +42,8 @@ func (p *productService) CreateCategory(ctx context.Context, req *dto.CreateCate
 		Name:        category.Name,
 		Description: category.Description,
 		IsActive:    category.IsActive,
+		CreatedAt:   category.CreatedAt,
+		UpdatedAt:   category.UpdatedAt,
 	}, nil
 }
 
@@ -58,6 +60,8 @@ func (p *productService) GetCategories(ctx context.Context) ([]*dto.CategoryResp
 			Name:        categories[i].Name,
 			Description: categories[i].Description,
 			IsActive:    categories[i].IsActive,
+			CreatedAt:   categories[i].CreatedAt,
+			UpdatedAt:   categories[i].UpdatedAt,
 		}
 	}
 
@@ -85,6 +89,8 @@ func (p *productService) UpdateCategory(ctx context.Context, id uint, req *dto.U
 		Name:        category.Name,
 		Description: category.Description,
 		IsActive:    category.IsActive,
+		CreatedAt:   category.CreatedAt,
+		UpdatedAt:   category.UpdatedAt,
 	}, nil
 }
 
@@ -203,6 +209,7 @@ func (p *productService) convertToProductResponse(product *domain.Product) *dto.
 			URL:       product.Images[i].URL,
 			AltText:   product.Images[i].AltText,
 			IsPrimary: product.Images[i].IsPrimary,
+			CreatedAt: product.Images[i].CreatedAt,
 		}
 	}
 
@@ -220,8 +227,12 @@ func (p *productService) convertToProductResponse(product *domain.Product) *dto.
 			Name:        product.Category.Name,
 			Description: product.Category.Description,
 			IsActive:    product.Category.IsActive,
+			CreatedAt:   product.Category.CreatedAt,
+			UpdatedAt:   product.Category.UpdatedAt,
 		},
-		Images: images,
+		Images:    images,
+		CreatedAt: product.CreatedAt,
+		UpdatedAt: product.UpdatedAt,
 	}
 }
 

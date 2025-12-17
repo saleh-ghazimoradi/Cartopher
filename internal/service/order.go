@@ -198,6 +198,7 @@ func (o *orderService) convertToOrderRepository(order *domain.Order) *dto.OrderR
 		TotalAmount: order.TotalAmount,
 		OrderItems:  orderItems,
 		CreatedAt:   order.CreatedAt,
+		UpdatedAt:   order.UpdatedAt,
 	}
 }
 

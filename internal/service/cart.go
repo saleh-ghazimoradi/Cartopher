@@ -117,8 +117,10 @@ func (c *cartService) convertToCartResponse(cart *domain.Cart) *dto.CartResponse
 					IsActive:    cart.CartItems[i].Product.IsActive,
 				},
 			},
-			Quantity: cart.CartItems[i].Quantity,
-			Subtotal: subtotal,
+			Quantity:  cart.CartItems[i].Quantity,
+			Subtotal:  subtotal,
+			CreatedAt: cart.CartItems[i].CreatedAt,
+			UpdatedAt: cart.CartItems[i].UpdatedAt,
 		}
 	}
 	return &dto.CartResponse{
@@ -126,6 +128,8 @@ func (c *cartService) convertToCartResponse(cart *domain.Cart) *dto.CartResponse
 		UserId:    cart.UserId,
 		CartItems: cartItems,
 		Total:     total,
+		CreatedAt: cart.CreatedAt,
+		UpdatedAt: cart.UpdatedAt,
 	}
 }
 
