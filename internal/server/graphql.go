@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/lru"
@@ -92,6 +93,22 @@ func (g *GraphQL) PlaygroundHandler() gin.HandlerFunc {
 	h := playground.Handler("GraphQL playground", "/graphql/")
 	return func(ctx *gin.Context) {
 		h.ServeHTTP(ctx.Writer, ctx.Request)
+	}
+}
+
+func (g *GraphQL) GraphqlMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		userId, _ := ctx.Get("user_id")
+		userEmail, _ := ctx.Get("user_email")
+		userRole, _ := ctx.Get("user_role")
+
+		ct := context.WithValue(ctx.Request.Context(), "user_id", userId)
+		ct = context.WithValue(ctx.Request.Context(), "user_email", userEmail)
+		ct = context.WithValue(ctx.Request.Context(), "user_role", userRole)
+
+		ctx.Request = ctx.Request.WithContext(ct)
+
+		ctx.Next()
 	}
 }
 
