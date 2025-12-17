@@ -41,6 +41,28 @@ func GetUserRoleFromContext(ctx context.Context) (string, error) {
 	return "", ErrUnauthorized
 }
 
+func getPagingNumbers(page, limit *int) (int, int) {
+	p, l := 0, 0
+
+	if page != nil {
+		p = *page
+	}
+
+	if limit != nil {
+		l = *limit
+	}
+
+	if p <= 0 {
+		p = 1
+	}
+
+	if l <= 0 {
+		l = 10
+	}
+
+	return p, l
+}
+
 func IsAdminFromContext(ctx context.Context) bool {
 	role, err := GetUserRoleFromContext(ctx)
 	if err != nil {

@@ -13,6 +13,12 @@ type GraphQLRoutes struct {
 
 func (g *GraphQLRoutes) GraphQLRoute(router *gin.Engine) {
 	router.GET("/playground", g.graphqlHandler.PlayGround())
+	router.GET("/playground/public", g.graphqlHandler.PlayGroundPublic())
+	router.GET("/playground/protected", g.graphqlHandler.PlayGroundPrivate())
+
+	graphqlPublic := router.Group("/graphql/public")
+	graphqlPublic.Use(g.authMiddleware.GraphqlMiddleware())
+	graphqlPublic.POST("/", g.graphqlHandler.GraphqlHandler())
 
 	graphqlProtected := router.Group("/graphql")
 	graphqlProtected.Use(g.authMiddleware.Authenticate())

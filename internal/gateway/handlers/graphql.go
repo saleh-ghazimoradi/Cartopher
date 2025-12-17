@@ -23,6 +23,20 @@ func (g *GraphQLHandler) PlayGround() gin.HandlerFunc {
 	}
 }
 
+func (g *GraphQLHandler) PlayGroundPublic() gin.HandlerFunc {
+	h := playground.Handler("GraphQL playground (Public)", "/graphql/public/")
+	return func(ctx *gin.Context) {
+		h.ServeHTTP(ctx.Writer, ctx.Request)
+	}
+}
+
+func (g *GraphQLHandler) PlayGroundPrivate() gin.HandlerFunc {
+	h := playground.Handler("GraphQL playground (private)", "/graphql/")
+	return func(ctx *gin.Context) {
+		h.ServeHTTP(ctx.Writer, ctx.Request)
+	}
+}
+
 func NewGraphQLHandler(handler *handler.Server) *GraphQLHandler {
 	return &GraphQLHandler{
 		handler: handler,
