@@ -30,7 +30,6 @@ func (g *Graphql) Connect() *handler.Server {
 	})
 
 	return srv
-
 }
 
 func NewGraphql(resolver *resolver.Resolver) *Graphql {

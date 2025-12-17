@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"context"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -60,6 +61,20 @@ func (a *Authentication) AdminMiddleware() gin.HandlerFunc {
 			return
 		}
 		ctx.Next()
+	}
+}
+
+func (a *Authentication) GraphqlMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userId, _ := c.Get("user_id")
+		userEmail, _ := c.Get("user_email")
+		userRole, _ := c.Get("user_role")
+
+		ctx := context.WithValue(c.Request.Context(), "user_id", userId)
+		ctx = context.WithValue(ctx, "user_email", userEmail)
+		ctx = context.WithValue(ctx, "user_role", userRole)
+		c.Request = c.Request.WithContext(ctx)
+		c.Next()
 	}
 }
 

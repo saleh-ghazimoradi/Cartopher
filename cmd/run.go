@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/saleh-ghazimoradi/Cartopher/graph/resolver"
 	"log"
 	"log/slog"
 	"os"
@@ -90,6 +91,18 @@ var runCmd = &cobra.Command{
 		cartService := service.NewCartService(cartRepository, productRepository)
 		orderService := service.NewOrderService(orderRepository, cartRepository, productRepository, gormDB)
 
+		graphqlResolver := resolver.NewResolver(
+			resolver.WithAuthService(authService),
+			resolver.WithUserService(userService),
+			resolver.WithProductService(productService),
+			resolver.WithOrderService(orderService),
+			resolver.WithCartService(cartService),
+		)
+
+		graphqlServer := server.NewGraphql(graphqlResolver)
+		graphqlHandler := handlers.NewGraphQLHandler(graphqlServer.Connect())
+		graphqlRoutes := routes.NewGraphQLRoutes(graphqlHandler, authenticationMiddleware)
+
 		authHandler := handlers.NewAuthHandler(authService)
 		userHandler := handlers.NewUserHandler(userService)
 		productHandler := handlers.NewProductHandler(productService, uploadService)
@@ -109,6 +122,7 @@ var runCmd = &cobra.Command{
 			routes.WithCartRoute(cartRoutes),
 			routes.WithOrderRoute(orderRoutes),
 			routes.WithMiddlewares(middleware),
+			routes.WithGraphqlRoute(graphqlRoutes),
 		)
 
 		gin.SetMode(cfg.Server.GinMode)

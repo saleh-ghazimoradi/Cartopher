@@ -16,6 +16,7 @@ type Register struct {
 	productRoute *ProductRoutes
 	cartRoute    *CartRoutes
 	orderRoute   *OrderRoutes
+	graphqlRoute *GraphQLRoutes
 }
 
 type Options func(*Register)
@@ -62,6 +63,12 @@ func WithMiddlewares(middlewares *middlewares.Middlewares) Options {
 	}
 }
 
+func WithGraphqlRoute(graphqlRoute *GraphQLRoutes) Options {
+	return func(r *Register) {
+		r.graphqlRoute = graphqlRoute
+	}
+}
+
 func (r *Register) RegisterRoutes() *gin.Engine {
 	router := gin.New()
 
@@ -81,6 +88,7 @@ func (r *Register) RegisterRoutes() *gin.Engine {
 	r.productRoute.ProductRoute(router)
 	r.cartRoute.cartRoute(router)
 	r.orderRoute.OrderRoute(router)
+	r.graphqlRoute.GraphQLRoute(router)
 	return router
 }
 
