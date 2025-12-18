@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -302,6 +303,38 @@ func (p *ProductHandler) UploadProductImage(ctx *gin.Context) {
 	}
 
 	helper.SuccessResponse(ctx, "Product image successfully uploaded", url)
+}
+
+// SearchProducts docs
+// @Summary Search products
+// @Description Search products using full-text search with ranking
+// @Tags Products
+// @Produce json
+// @Param q query string true "Search query"
+// @Param page query int false "Page number" default(1)
+// @Param limit query int false "Items per page" default(10)
+// @Param category_id query int false "Filter by category ID"
+// @Param min_price query number false "Minimum price filter"
+// @Param max_price query number false "Maximum price filter"
+// @Success 200 {object} helper.PaginatedResponse{data=[]dto.ProductSearchResult} "Search results"
+// @Failure 400 {object} helper.Response "Invalid search query"
+// @Failure 500 {object} helper.Response "Internal server error"
+// @Router /search [get]
+func (p *ProductHandler) SearchProducts(ctx *gin.Context) {
+	payload := &dto.SearchProductsRequest{}
+	if err := ctx.ShouldBindQuery(&payload); err != nil {
+		helper.BadRequestResponse(ctx, "Invalid payload given", err)
+		return
+	}
+
+	result, meta, err := p.productService.SearchProducts(ctx, payload)
+	if err != nil {
+		fmt.Println("Error searching products", err)
+		helper.InternalServerError(ctx, "Error searching products", err)
+		return
+	}
+
+	helper.PaginatedSuccessResponse(ctx, "Products retrieved successfully", result, *meta)
 }
 
 func NewProductHandler(productService service.ProductService, uploadService service.UploadService) *ProductHandler {

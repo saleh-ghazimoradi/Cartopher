@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-
 	"github.com/saleh-ghazimoradi/Cartopher/internal/domain"
+	"github.com/saleh-ghazimoradi/Cartopher/internal/dto"
 	"gorm.io/gorm"
 )
 
@@ -23,6 +23,7 @@ type ProductRepository interface {
 	CountActiveProducts(ctx context.Context) (int64, error)
 	UpdateProduct(ctx context.Context, product *domain.Product) error
 	DeleteProduct(ctx context.Context, id uint) error
+	SearchProducts(ctx context.Context, req *dto.SearchProductsRequest, offset, limit int) ([]*domain.Product, []float32, int64, error)
 	WithTx(tx *gorm.DB) ProductRepository
 }
 
@@ -121,6 +122,63 @@ func (p *productRepository) UpdateProduct(ctx context.Context, product *domain.P
 
 func (p *productRepository) DeleteProduct(ctx context.Context, id uint) error {
 	return exec(p.dbWrite, p.tx).WithContext(ctx).Delete(&domain.Product{}, id).Error
+}
+
+func (p *productRepository) SearchProducts(ctx context.Context, req *dto.SearchProductsRequest, offset, limit int) ([]*domain.Product, []float32, int64, error) {
+
+	db := exec(p.dbRead, p.tx).
+		WithContext(ctx).
+		Model(&domain.Product{}).
+		Select(
+			"products.*, ts_rank(search_vector, plainto_tsquery('english', ?)) AS rank",
+			req.Query,
+		).
+		Where("search_vector @@ plainto_tsquery('english', ?)", req.Query).
+		Where("is_active = ?", true)
+
+	if req.CategoryId != nil {
+		db = db.Where("category_id = ?", *req.CategoryId)
+	}
+
+	if req.MinPrice != nil {
+		db = db.Where("price >= ?", *req.MinPrice)
+	}
+
+	if req.MaxPrice != nil {
+		db = db.Where("price <= ?", *req.MaxPrice)
+	}
+
+	// count
+	var total int64
+	if err := db.Count(&total).Error; err != nil {
+		return nil, nil, 0, err
+	}
+
+	// local struct for rank
+	type productWithRank struct {
+		domain.Product
+		Rank float32 `gorm:"column:rank"`
+	}
+
+	var rows []productWithRank
+	if err := db.
+		Preload("Category").
+		Preload("Images").
+		Order("rank DESC, created_at DESC").
+		Offset(offset).
+		Limit(limit).
+		Find(&rows).Error; err != nil {
+		return nil, nil, 0, err
+	}
+
+	products := make([]*domain.Product, len(rows))
+	ranks := make([]float32, len(rows))
+	for i := range rows {
+		products[i] = &rows[i].Product
+		ranks[i] = rows[i].Rank
+	}
+
+	return products, ranks, total, nil
 }
 
 func (p *productRepository) WithTx(tx *gorm.DB) ProductRepository {

@@ -21,6 +21,7 @@ type ProductService interface {
 	GetProducts(ctx context.Context, page, limit int) ([]*dto.ProductResponse, *helper.PaginatedMeta, error)
 	UpdateProduct(ctx context.Context, id uint, req *dto.UpdateProductRequest) (*dto.ProductResponse, error)
 	DeleteProduct(ctx context.Context, id uint) error
+	SearchProducts(ctx context.Context, req *dto.SearchProductsRequest) ([]*dto.ProductSearchResult, *helper.PaginatedMeta, error)
 }
 
 type productService struct {
@@ -199,6 +200,50 @@ func (p *productService) UpdateProduct(ctx context.Context, id uint, req *dto.Up
 
 func (p *productService) DeleteProduct(ctx context.Context, id uint) error {
 	return p.productRepository.DeleteProduct(ctx, id)
+}
+
+func (p *productService) SearchProducts(
+	ctx context.Context,
+	req *dto.SearchProductsRequest,
+) ([]*dto.ProductSearchResult, *helper.PaginatedMeta, error) {
+
+	if req.Page < 1 {
+		req.Page = 1
+	}
+
+	if req.Limit < 1 {
+		req.Limit = 10
+	}
+
+	offset := (req.Page - 1) * req.Limit
+
+	products, ranks, total, err := p.productRepository.SearchProducts(
+		ctx,
+		req,
+		offset,
+		req.Limit,
+	)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	results := make([]*dto.ProductSearchResult, len(products))
+	for i := range products {
+		results[i] = &dto.ProductSearchResult{
+			ProductResponse: *p.convertToProductResponse(products[i]),
+			Rank:            ranks[i],
+		}
+	}
+
+	totalPages := int((total + int64(req.Limit) - 1) / int64(req.Limit))
+	meta := &helper.PaginatedMeta{
+		Page:      req.Page,
+		Limit:     req.Limit,
+		Total:     total,
+		TotalPage: totalPages,
+	}
+
+	return results, meta, nil
 }
 
 func (p *productService) convertToProductResponse(product *domain.Product) *dto.ProductResponse {

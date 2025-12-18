@@ -18,6 +18,7 @@ func (p *ProductRoutes) ProductRoute(router *gin.Engine) {
 	v1.GET("/categories", p.productHandler.GetCategories)
 	v1.GET("/products", p.productHandler.GetProducts)
 	v1.GET("/products/:id", p.productHandler.GetProductById)
+	v1.GET("/search", p.productHandler.SearchProducts)
 
 	// Protected routes
 	protected := v1.Group("/")
