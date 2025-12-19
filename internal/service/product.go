@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"github.com/saleh-ghazimoradi/Cartopher/infra/cache"
+	"time"
 
 	"github.com/saleh-ghazimoradi/Cartopher/internal/domain"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/dto"
@@ -26,6 +28,7 @@ type ProductService interface {
 
 type productService struct {
 	productRepository repository.ProductRepository
+	cache             cache.Cache
 }
 
 func (p *productService) CreateCategory(ctx context.Context, req *dto.CreateCategoryRequest) (*dto.CategoryResponse, error) {
@@ -112,8 +115,9 @@ func (p *productService) CreateProduct(ctx context.Context, req *dto.CreateProdu
 		return nil, err
 	}
 
-	return p.GetProductById(ctx, product.Id)
+	_ = p.invalidateProductLists(ctx)
 
+	return p.GetProductById(ctx, product.Id)
 }
 
 func (p *productService) AddProductImage(ctx context.Context, productId uint, url, altText string) error {
@@ -129,16 +133,29 @@ func (p *productService) AddProductImage(ctx context.Context, productId uint, ur
 		IsPrimary: count == 0,
 	}
 
+	_ = p.invalidateProductById(ctx, productId)
+
 	return p.productRepository.CreateProductImage(ctx, image)
 }
 
 func (p *productService) GetProductById(ctx context.Context, id uint) (*dto.ProductResponse, error) {
+	key := cache.ProductById(id)
+
+	var cached dto.ProductResponse
+	if found, err := p.cache.Get(ctx, key, &cached); err != nil {
+		return nil, err
+	} else if found {
+		return &cached, nil
+	}
+
 	product, err := p.productRepository.GetProductById(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	response := p.convertToProductResponse(product)
+	_ = p.cache.Set(ctx, key, response, 30*time.Second)
+
 	return response, nil
 }
 
@@ -149,6 +166,19 @@ func (p *productService) GetProducts(ctx context.Context, page, limit int) ([]*d
 
 	if limit < 1 {
 		limit = 10
+	}
+
+	key := cache.ProductList(page, limit)
+	type cachedResult struct {
+		Items []*dto.ProductResponse
+		Meta  *helper.PaginatedMeta
+	}
+
+	var cached cachedResult
+	if found, err := p.cache.Get(ctx, key, &cached); err != nil {
+		return nil, nil, err
+	} else if found {
+		return cached.Items, cached.Meta, nil
 	}
 
 	offset := (page - 1) * limit
@@ -173,7 +203,12 @@ func (p *productService) GetProducts(ctx context.Context, page, limit int) ([]*d
 		TotalPage: totalPages,
 	}
 
-	return response, meta, err
+	_ = p.cache.Set(ctx, key, cachedResult{
+		Items: response,
+		Meta:  meta,
+	}, 30*time.Second)
+
+	return response, meta, nil
 }
 
 func (p *productService) UpdateProduct(ctx context.Context, id uint, req *dto.UpdateProductRequest) (*dto.ProductResponse, error) {
@@ -195,10 +230,15 @@ func (p *productService) UpdateProduct(ctx context.Context, id uint, req *dto.Up
 		return nil, err
 	}
 
+	_ = p.invalidateProductById(ctx, product.Id)
+	_ = p.invalidateProductLists(ctx)
+
 	return p.GetProductById(ctx, product.Id)
 }
 
 func (p *productService) DeleteProduct(ctx context.Context, id uint) error {
+	_ = p.invalidateProductById(ctx, id)
+	_ = p.invalidateProductLists(ctx)
 	return p.productRepository.DeleteProduct(ctx, id)
 }
 
@@ -281,8 +321,17 @@ func (p *productService) convertToProductResponse(product *domain.Product) *dto.
 	}
 }
 
-func NewProductService(productRepository repository.ProductRepository) ProductService {
+func (p *productService) invalidateProductById(ctx context.Context, id uint) error {
+	return p.cache.Delete(ctx, cache.ProductById(id))
+}
+
+func (p *productService) invalidateProductLists(ctx context.Context) error {
+	return p.cache.DeleteByPrefix(ctx, cache.ProductListPrefix())
+}
+
+func NewProductService(productRepository repository.ProductRepository, cache cache.Cache) ProductService {
 	return &productService{
 		productRepository: productRepository,
+		cache:             cache,
 	}
 }

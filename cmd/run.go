@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/saleh-ghazimoradi/Cartopher/graph/resolver"
-	"log"
-	"log/slog"
-	"os"
-	"sync"
-
+	"github.com/saleh-ghazimoradi/Cartopher/infra/cache"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/events"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/service"
 	"github.com/saleh-ghazimoradi/Cartopher/pkg/uploadProvider"
+	"log"
+	"log/slog"
+	"os"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/saleh-ghazimoradi/Cartopher/config"
@@ -41,6 +41,16 @@ var runCmd = &cobra.Command{
 		}
 
 		log := logger.NewLogger(cfg)
+
+		redis := cache.NewRedis(
+			cache.WithHost(cfg.Redis.Host),
+			cache.WithPort(cfg.Redis.Port),
+			cache.WithPassword(cfg.Redis.Password),
+			cache.WithDB(cfg.Redis.DB),
+		)
+
+		redisClient, err := redis.Connect(context.Background())
+		cacheService := cache.NewCache(redisClient)
 
 		postDB := postgresql.NewPostgresql(
 			postgresql.WithHost(cfg.Postgresql.Host),
@@ -86,7 +96,7 @@ var runCmd = &cobra.Command{
 
 		authService := service.NewAuthService(cfg, eventPublisher, userRepository, cartRepository)
 		userService := service.NewUserService(userRepository)
-		productService := service.NewProductService(productRepository)
+		productService := service.NewProductService(productRepository, cacheService)
 		uploadService := service.NewUploadService(uploadProviders)
 		cartService := service.NewCartService(cartRepository, productRepository)
 		orderService := service.NewOrderService(orderRepository, cartRepository, productRepository, gormDB)

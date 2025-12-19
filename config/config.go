@@ -20,6 +20,7 @@ type Config struct {
 	AWS        AWS
 	Upload     Upload
 	SMTP       SMTP
+	Redis      Redis
 }
 
 type Server struct {
@@ -29,6 +30,13 @@ type Server struct {
 	ReadTimeout  time.Duration `env:"SERVER_READ_TIMEOUT"`
 	WriteTimeout time.Duration `env:"SERVER_WRITE_TIMEOUT"`
 	GinMode      string        `env:"SERVER_GIN_MODE"`
+}
+
+type Redis struct {
+	Host     string `env:"REDIS_HOST"`
+	Port     string `env:"REDIS_PORT"`
+	Password string `env:"REDIS_PASSWORD"`
+	DB       int    `env:"REDIS_DB"`
 }
 
 type Postgresql struct {
