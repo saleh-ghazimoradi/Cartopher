@@ -37,6 +37,7 @@ type Redis struct {
 	Port     string `env:"REDIS_PORT"`
 	Password string `env:"REDIS_PASSWORD"`
 	DB       int    `env:"REDIS_DB"`
+	RPM      int    `env:"REDIS_RPM"`
 }
 
 type Postgresql struct {

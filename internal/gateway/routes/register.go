@@ -75,6 +75,7 @@ func (r *Register) RegisterRoutes() *gin.Engine {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(r.middlewares.CorsMiddleware())
+	router.Use(r.middlewares.RateLimitMiddleware())
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

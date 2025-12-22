@@ -3,10 +3,12 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis_rate/v10"
 	"github.com/saleh-ghazimoradi/Cartopher/graph/resolver"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/cache"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/events"
 	"github.com/saleh-ghazimoradi/Cartopher/infra/postgresql"
+	"github.com/saleh-ghazimoradi/Cartopher/internal/helper"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/repository"
 	"github.com/saleh-ghazimoradi/Cartopher/internal/service"
 	"github.com/saleh-ghazimoradi/Cartopher/pkg/uploadProvider"
@@ -52,6 +54,9 @@ var runCmd = &cobra.Command{
 		redisClient, err := redis.Connect(context.Background())
 		cacheService := cache.NewCache(redisClient)
 
+		limiter := redis_rate.NewLimiter(redisClient)
+		rateLimiter := helper.NewRateLimiter(limiter)
+
 		postDB := postgresql.NewPostgresql(
 			postgresql.WithHost(cfg.Postgresql.Host),
 			postgresql.WithPort(cfg.Postgresql.Port),
@@ -80,7 +85,7 @@ var runCmd = &cobra.Command{
 			uploadProviders = uploadProvider.NewLocalUploadProvider(cfg.Upload.Path)
 		}
 
-		middleware := middlewares.NewMiddlewares()
+		middleware := middlewares.NewMiddlewares(cfg, rateLimiter)
 		authenticationMiddleware := middlewares.NewAuthentication(cfg)
 		eventPublisher, err := events.NewWatermillEventPublisher(ctx, cfg)
 		if err != nil {
